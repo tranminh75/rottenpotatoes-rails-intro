@@ -1,7 +1,7 @@
 class MoviesController < ApplicationController
 
   def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date)
+    params.require(:movie).permit(:title, :rating, :description, :release_date, :sort_by, :ratings)
   end
 
   def show
@@ -11,14 +11,28 @@ class MoviesController < ApplicationController
   end
 
   def index
+    #Sort movies by either title or release date
     sortby = params[:sort_by]
+    #Filter movies by rating
     @movies = Movie.all
+    @all_ratings = Array.new
+    @movies.each do |movie|
+      movie_rating = movie.rating
+      @all_ratings << movie_rating if @all_ratings.include?(movie_rating) == false
+    end
+    @filter_ratings = Array.new
+    if params[:ratings] == nil
+      @filter_ratings = @all_ratings
+    else
+      @filter_ratings = params[:ratings].keys
+    end
+    @movies = Movie.where(rating: @filter_ratings)
     if sortby == "title"
       @movies = @movies.order(sortby)
     elsif sortby == "release_date"
       @movies = @movies.order(sortby)
     end
-  end
+ end
 
   def new
     # default: render 'new' template
