@@ -11,8 +11,7 @@ class MoviesController < ApplicationController
   end
 
   def index
-    #Sort movies by either title or release date
-    sortby = params[:sort_by]
+    @redirect = false
     #Filter movies by rating
     @movies = Movie.all
     @all_ratings = Array.new
@@ -20,17 +19,33 @@ class MoviesController < ApplicationController
       movie_rating = movie.rating
       @all_ratings << movie_rating if @all_ratings.include?(movie_rating) == false
     end
+    
     @filter_ratings = Array.new
-    if params[:ratings] == nil
-      @filter_ratings = @all_ratings
+    if params[:ratings] 
+      session[:ratings] = params[:ratings]
+      @filter_ratings = session[:ratings].keys
+    elsif session[:ratings]
+      @filter_ratings = session[:ratings].keys
+      @redirect = true
     else
-      @filter_ratings = params[:ratings].keys
+      @filter_ratings = @all_ratings
     end
-    @movies = Movie.where(rating: @filter_ratings)
-    if sortby == "title"
-      @movies = @movies.order(sortby)
-    elsif sortby == "release_date"
-      @movies = @movies.order(sortby)
+    @movies = @movies.where(rating: @filter_ratings)
+    
+    #Sort movies by either title or release date
+    if params[:sort_by]
+      @sortby = params[:sort_by]
+      session[:sort_by] = params[:sort_by]
+    elsif session[:sort_by] 
+      @sortby = session[:sort_by]
+      @redirect = true
+    else
+      @sortby = nil
+    end
+    @movies = @movies.order(@sortby)
+    if @redirect
+      flash.keep
+      redirect_to movies_path :sort_by=>@sortby, :ratings=>@filter_ratings
     end
  end
 
