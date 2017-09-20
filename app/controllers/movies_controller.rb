@@ -11,6 +11,7 @@ class MoviesController < ApplicationController
   end
 
   def index
+    session.clear
     @redirect = false
     #Filter movies by rating
     @movies = Movie.all
@@ -30,7 +31,7 @@ class MoviesController < ApplicationController
     else
       @filter_ratings = @all_ratings
     end
-    @movies = @movies.where(rating: @filter_ratings)
+    @movies = @movies.where(:rating => @filter_ratings)
     
     #Sort movies by either title or release date
     if params[:sort_by]
